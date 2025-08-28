@@ -128,25 +128,7 @@ def participants():
     
     except Exception as e:
         print(f"❌ Erro na página de participantes: {e}")
-        return render_template('error.html', error=str(e))
-
-@app.route('/data-explorer')
-def data_explorer():
-    """Explorador de dados"""
-    try:
-        data = get_cached_data()
-        processor = DataProcessor(data)
-        
-        # Lista de colunas
-        columns = processor.get_all_columns()
-        
-        return render_template('data_explorer.html', 
-                             columns=columns,
-                             total_columns=len(columns))
-    
-    except Exception as e:
-        print(f"❌ Erro no explorador de dados: {e}")
-        return render_template('error.html', error=str(e))
+        return render_template('analytics.html', error=str(e))
 
 def generate_basic_charts(processor):
     """Gera gráficos básicos"""
@@ -320,50 +302,6 @@ def analytics():
                              success=False,
                              error=str(e))
 
-@app.route('/instruments')
-def instruments():
-    """Página de análise por instrumentos"""
-    try:
-        data = get_cached_data()
-        processor = DataProcessor(data)
-        metadata = redcap.get_metadata() if redcap else None
-        
-        advanced_analytics = processor.get_advanced_analytics(metadata)
-        instruments_data = advanced_analytics.get('by_instrument', {})
-        
-        return render_template('instruments.html', 
-                             instruments=instruments_data,
-                             success=True)
-    
-    except Exception as e:
-        print(f"❌ Erro nos instrumentos: {e}")
-        return render_template('instruments.html', 
-                             instruments={},
-                             success=False,
-                             error=str(e))
-
-@app.route('/groups')
-def groups():
-    """Página de análise por grupos"""
-    try:
-        data = get_cached_data()
-        processor = DataProcessor(data)
-        metadata = redcap.get_metadata() if redcap else None
-        
-        advanced_analytics = processor.get_advanced_analytics(metadata)
-        groups_data = advanced_analytics.get('by_group', {})
-        
-        return render_template('groups.html', 
-                             groups=groups_data,
-                             success=True)
-    
-    except Exception as e:
-        print(f"❌ Erro nos grupos: {e}")
-        return render_template('groups.html', 
-                             groups={},
-                             success=False,
-                             error=str(e))
-
 @app.route('/api/filter', methods=['POST'])
 def api_filter_data():
     """API para filtrar dados"""
@@ -409,31 +347,6 @@ def api_field_analysis(field_name):
             'error': str(e)
         }), 400
 
-@app.route('/patterns')
-def patterns():
-    """Página de identificação de padrões"""
-    try:
-        data = get_cached_data()
-        processor = DataProcessor(data)
-        metadata = redcap.get_metadata() if redcap else None
-        
-        advanced_analytics = processor.get_advanced_analytics(metadata)
-        patterns_data = advanced_analytics.get('patterns', {})
-        insights = advanced_analytics.get('insights', [])
-        
-        return render_template('patterns.html', 
-                             patterns=patterns_data,
-                             insights=insights,
-                             success=True)
-    
-    except Exception as e:
-        print(f"❌ Erro nos padrões: {e}")
-        return render_template('patterns.html', 
-                             patterns={},
-                             insights=[],
-                             success=False,
-                             error=str(e))
-
 @app.route('/longitudinal')
 def longitudinal_analysis():
     try:
@@ -461,36 +374,6 @@ def longitudinal_analysis():
                              trajectories={},
                              seasonal={},
                              alerts={},
-                             success=False,
-                             error=str(e))
-
-@app.route('/alerts')
-def clinical_alerts():
-    try:
-        print("🚨 Iniciando análise de alertas clínicos...")
-        data = redcap.get_records()
-        processor = DataProcessor(data)
-        
-        # Sistema de alertas
-        risk_participants = processor.identify_risk_participants()
-        medication_alerts = processor.generate_medication_alerts()
-        sleep_alerts = processor.analyze_critical_sleep()
-        anomaly_alerts = processor.detect_response_anomalies()
-        
-        print("✅ Análise de alertas concluída")
-        return render_template('alerts.html',
-                             risk_participants=risk_participants,
-                             medication_alerts=medication_alerts,
-                             sleep_alerts=sleep_alerts,
-                             anomalies=anomaly_alerts,
-                             success=True)
-    except Exception as e:
-        print(f"❌ Erro nos alertas clínicos: {e}")
-        return render_template('alerts.html',
-                             risk_participants={},
-                             medication_alerts={},
-                             sleep_alerts={},
-                             anomalies={},
                              success=False,
                              error=str(e))
 
@@ -609,7 +492,7 @@ def caregiver_analysis():
         support_effectiveness = processor.assess_support_effectiveness()
         response_patterns = processor.caregiver_response_patterns()
         
-        return render_template('caregivers.html',
+        return render_template('analytics.html',
                              comparison=caregiver_comparison,
                              burden=burden_analysis,
                              effectiveness=support_effectiveness,
@@ -620,11 +503,8 @@ def caregiver_analysis():
         print(f"❌ Erro na análise de cuidadores: {e}")
         import traceback
         traceback.print_exc()
-        return render_template('caregivers.html',
-                             comparison={},
-                             burden={},
-                             effectiveness={},
-                             patterns={},
+        return render_template('error.html',
+                             error=f"Erro na análise de cuidadores: {str(e)}")
                              success=False,
                              error=str(e))
 
